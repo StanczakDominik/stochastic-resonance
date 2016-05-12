@@ -99,6 +99,24 @@ def stochastic(a=a, b=b, c=c, D=D, w=w, NT=NT, dt = dt, x0=x0):
     parameters["tfin"] = t[-1]
     return x_binary, parameters
 
+def fourier_analysis():
+    D_points = []
+    P_points = []
+    with h5py.File("data.hdf5") as f:
+        for dataset_name, dataset in f.items():
+            attrs = dataset.attrs
+            D = attrs['D']
+            NT = int(attrs['NT'])
+            dt = attrs['dt']
+            X = fft.rfft(dataset[...])
+            power = np.abs(X)**2
+            Omega = fft.rfftfreq(NT, dt)
+            max_power = power.max()
+            ind = (Omega > 0) * (power < max_power*3)
+            plt.plot(Omega[ind],np.log(power[ind]))
+            plt.show()
+            # D_points.append(D)
+            # P_points.append(max)
 
 def run_stochastic(D=D):
     dataset, attrs = stochastic(D=D)
@@ -112,4 +130,5 @@ def run_stochastic(D=D):
             print(attr, val)
 
 if __name__=="__main__":
-    run_stochastic(D=2)
+    fourier_analysis()
+    # run_stochastic(D=0.3)
