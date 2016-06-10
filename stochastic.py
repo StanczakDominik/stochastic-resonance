@@ -1,39 +1,36 @@
 import numpy as np
-import scipy.fftpack as fft
 import matplotlib.pyplot as plt
 import matplotlib.animation as anim
 from numba import autojit
 import h5py
-import time
-
-
 
 """
 f_s = 3.125
 """
+filename = "data2.hdf5"
 
-a = 1
-b = 1
-c = 0.25
-D = 0.05
+x1_force = 1
+x3_force = 1
+periodic_force_amplitude = 0.25
+random_variance = 0.05
 dt = 0.005
 steps = 1024
-periods = 512
+periods = 512 // 1
 T = steps * dt
-# w = 2 * np.pi / T
-w = 1/T
+# force_frequency = 2 * np.pi / T
+force_frequency = 1/T
 NT = periods * steps
 x0 = 2
 
-def stochastic(a=a, b=b, c=c, D=D, w=w, NT=NT, dt = dt, x0=x0, plotting=True):
-    parameters = {"a": a, "b":b, "c":c, "D":D, "steps":steps, "periods":periods,
-        "w":w, "T":T, "NT":NT, "dt":dt, "x0":x0}
+def stochastic(x1_force=x1_force, x3_force=x3_force, periodic_force_amplitude=periodic_force_amplitude, random_variance=random_variance, force_frequency=force_frequency, NT=NT, dt = dt, x0=x0, plotting=True):
+    parameters = {"x1_force": x1_force, "x3_force":x3_force, "periodic_force_amplitude":periodic_force_amplitude, "random_variance":random_variance, "steps":steps, "periods":periods,
+        "force_frequency":force_frequency, "T":T, "NT":NT, "dt":dt, "x0":x0}
 
     def f(x, t):
-        return a*x - b*x**3 + c*np.sin(w*t)
+        return x1_force*x - x3_force*x**3 + periodic_force_amplitude*np.sin(2*np.pi*force_frequency*t)
 
     def V(x, t):
-        return -0.5*a*x**2 + 0.25 * b * x**4 - x*c*np.sin(w*t)
+        return -0.5*x1_force*x**2 + 0.25 * x3_force * x**4 - x*periodic_force_amplitude*np.sin(force_frequency*t)
 
     t = np.arange(NT)*dt
 
@@ -43,7 +40,7 @@ def stochastic(a=a, b=b, c=c, D=D, w=w, NT=NT, dt = dt, x0=x0, plotting=True):
 
     @autojit
     def euler(x,t,dt):
-        dx = f(x, t)*dt + np.sqrt(2*D*dt)*np.random.normal()
+        dx = f(x, t)*dt + np.sqrt(2*random_variance*dt)*np.random.normal()
         return x + dx
 
     @autojit
@@ -64,7 +61,7 @@ def stochastic(a=a, b=b, c=c, D=D, w=w, NT=NT, dt = dt, x0=x0, plotting=True):
         ax2.set_xlim(t.min(), t.max())
         ax2.set_xlabel("t")
         ax2.set_ylabel("x_history")
-        ax2.plot(t, np.sin(w*t))
+        ax2.plot(t, np.sin(force_frequency*t))
 
         max_distance = np.max((np.abs(x_history.min()),np.abs(x_history.max())))
         x_v = np.linspace(-max_distance,max_distance,30)
@@ -100,52 +97,16 @@ def stochastic(a=a, b=b, c=c, D=D, w=w, NT=NT, dt = dt, x0=x0, plotting=True):
     parameters["tfin"] = t[-1]
     return x_binary, parameters
 
-def fourier_analysis():
-    from scipy.signal import savgol_filter
-    D_points = []
-    P_points = []
-    with h5py.File("data.hdf5") as f:
-        for dataset_name, dataset in f.items():
-            attrs = dataset.attrs
-            D = attrs['D']
-            NT = int(attrs['NT'])
-            dt = attrs['dt']
-            T = attrs['T']
-            X = fft.rfft(dataset[...])
-            Omega = fft.rfftfreq(NT, dt)
-            dOmega = Omega[1] - Omega[0]
-            signal_power_density = np.abs(X)**2 / dOmega
-            max_power_ind = signal_power_density.argmax()
-            noise = savgol_filter(signal_power_density, 201, 3)
-            # ind = (Omega > 0)# * (Omega < Omega[max_power_ind]*3)
-            # plt.plot(Omega, 20*np.log10(signal_power_density), label="{:3f}".format(D))
-            plt.plot(Omega, 20*np.log10(noise), label="noise".format(D))
-            # plt.plot(Omega, 20*np.log10(signal_power_density/noise), label="noise".format(D))
-            plt.plot(1/T, 0, "ro", label="driving force")
-            plt.legend()
-            plt.ylabel("SNR (dB)")
-            plt.xlabel("f (Hz??)")
-            plt.xlim(0, 15)
-            plt.grid()
-            plt.show()
-            # D_points.append(D)
-            # P_points.append(max)
-
-            # X = fft.rfft(x_history)
-            # power = np.abs(X)**2
-            # idx = np.argmax(power)
-            # Omega_max = Omega[idx]
-            # limits = (Omega < 4*Omega_max) * (Omega > 0)
 
 
-def run_stochastic(D=D, plotting=False):
-    name = str(D)
-    with h5py.File("data.hdf5") as f:
+def run_stochastic(random_variance=random_variance, plotting=False):
+    name = str(random_variance)
+    with h5py.File(filename) as f:
         if name in f:
             print("{} already done".format(name))
             return
 
-        dataset, attrs = stochastic(D=D, plotting=plotting)
+        dataset, attrs = stochastic(random_variance=random_variance, plotting=plotting)
 
         file_dataset = f.create_dataset(name, data = dataset.astype(bool))
         print(file_dataset)
@@ -156,4 +117,5 @@ def run_stochastic(D=D, plotting=False):
 
 if __name__=="__main__":
     for d in np.logspace(-2,0,20):
-        run_stochastic(D=d)
+        print("Running for d={}".format(d))
+        run_stochastic(random_variance=d)
