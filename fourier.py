@@ -2,13 +2,13 @@ import matplotlib.pyplot as plt
 import h5py
 import numpy as np
 import scipy.fftpack as fft
-from scipy.signal import savgol_filter
 
 
 filename = "data2.hdf5"
 
-def fourier_analysis(filename = "data2.hdf5"):
-    with h5py.File("data.hdf5") as f:
+def fourier_analysis(filename = filename):
+    data = {}
+    with h5py.File(filename) as f:
         for dataset_name, dataset in f.items():
             print(dataset_name)
             attrs = dataset.attrs
@@ -25,7 +25,7 @@ def fourier_analysis(filename = "data2.hdf5"):
             # dOmega = Omega[1] - Omega[0]
             SPD = np.log(np.abs(X)**2)
 
-            fig, (ax1, ax2) = plt.subplots(2)
+            fig, (ax1, ax2, ax3) = plt.subplots(3)
             ax1.plot(np.linspace(0,T,NT), x)
             ax1.set_ylim(-1.3, 1.3)
             ax1.set_xlabel("t")
@@ -36,17 +36,32 @@ def fourier_analysis(filename = "data2.hdf5"):
             if np.isinf(min_line):
                 min_line = 0
             print(frequency, SPD.min(), SPD.max())
-            ax2.plot(Omega, SPD, label="Signal power density")
+            ind_plot2 = Omega < frequency*2.5
+            ax2.plot(Omega[ind_plot2], SPD[ind_plot2], label="Signal power density")
             ax2.vlines(frequency, min_line, SPD.max())
-            ax2.set_xlim(-0.5*frequency, frequency*2.5)
+            # ax2.set_xlim(-0.5*frequency, frequency*2.5)
 
-            # noise = np.log(savgol_filter(np.abs(X)**2, 201, 3))
-            # ax2.plot(Omega, noise, "r--", label="avg noise")
-            # ax2.legend(loc = 'best')
+            N_average = 11
+            def running_mean(x, N):
+                cumsum = np.cumsum(np.insert(x, 0, 0))
+                return (cumsum[N:] - cumsum[:-N]) / N
+            omega_average = Omega[int(N_average/2):-int(N_average/2)]
+            indices = omega_average < frequency*2.5
+            # averaged_signal = np.convolve(x, np.ones((N_average,))/N_average, mode='valid')
+            averaged_signal = running_mean(np.abs(X)**2, N_average)
+            averaged_fourier = np.log(averaged_signal)
+            # import ipdb; ipdb.set_trace()
+            ax2.plot(omega_average[indices], averaged_fourier[indices], "r--", label="avg noise")
+            y_plot3 = SPD[int(N_average/2):-int(N_average/2)][indices] - averaged_fourier[indices]            
+            ax3.plot(omega_average[indices], y_plot3,
+                        "r-", label="avg noise")
+            ax3.vlines(frequency, y_plot3.min(), y_plot3.max())
+            ax2.legend(loc = 'best')
 
             ax2.set_ylabel("ln(|x|^2)")
             ax2.set_xlabel("f (Hz)")
             ax2.grid()
-            plt.show()
+            plt.savefig("{}.png".format(random_variance))
+            plt.clf()
 if __name__=="__main__":
     fourier_analysis()

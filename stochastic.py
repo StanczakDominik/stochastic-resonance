@@ -7,7 +7,7 @@ import h5py
 """
 f_s = 3.125
 """
-filename = "data2.hdf5"
+filename = "data3.hdf5"
 
 x1_force = 1
 x3_force = 1
@@ -15,7 +15,7 @@ periodic_force_amplitude = 0.25
 random_variance = 0.05
 dt = 0.005
 steps = 1024
-periods = 512 // 1
+periods = 512 * 8 * 4 
 T = steps * dt
 # force_frequency = 2 * np.pi / T
 force_frequency = 1/T
@@ -116,6 +116,6 @@ def run_stochastic(random_variance=random_variance, plotting=False):
 
 
 if __name__=="__main__":
-    for d in np.logspace(-2,0,20):
+    for d in np.logspace(-2,1,200):
         print("Running for d={}".format(d))
         run_stochastic(random_variance=d)
