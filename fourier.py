@@ -3,7 +3,7 @@ import h5py
 import numpy as np
 import scipy.fftpack as fft
 import os
-
+import pandas as pd
 filename = "data3.hdf5"
 
 def fourier_analysis(filename = filename):
@@ -26,7 +26,7 @@ def fourier_analysis(filename = filename):
             SPD = np.log(np.abs(X)**2)
 
 
-            N_average = 11
+            N_average = 51
             def running_mean(x, N):
                 cumsum = np.cumsum(np.insert(x, 0, 0))
                 return (cumsum[N:] - cumsum[:-N]) / N
@@ -64,14 +64,16 @@ def fourier_analysis(filename = filename):
                 ax2.set_ylabel("ln(|x|^2)")
                 ax2.set_xlabel("f (Hz)")
                 ax2.grid()
-                plt.savefig(picname)
-                plt.clf()
+                fig.savefig(picname)
+                fig.clf()
+                plt.close(fig)
     fig, ax = plt.subplots()
     x_plot = np.array([float(i) for i in data.keys()])
     y_plot = np.array([float(i) for i in data.values()])
     sort_ind = np.argsort(x_plot)
     x_plot = x_plot[sort_ind]
     y_plot = y_plot[sort_ind]
+    pd.Series(data = y_plot, index = x_plot, name="f[omega_driving](variance)").to_csv("wykres.csv")
     ax.plot(x_plot, y_plot)
     plt.show()
 if __name__=="__main__":
