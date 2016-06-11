@@ -15,12 +15,14 @@ periodic_force_amplitude = 0.25
 random_variance = 0.05
 dt = 0.005
 steps = 1024
-periods = 512 * 8 * 4 
+periods = 512 * 8 * 4
 T = steps * dt
 # force_frequency = 2 * np.pi / T
 force_frequency = 1/T
 NT = periods * steps
 x0 = 2
+
+show_every = 20
 
 def stochastic(x1_force=x1_force, x3_force=x3_force, periodic_force_amplitude=periodic_force_amplitude, random_variance=random_variance, force_frequency=force_frequency, NT=NT, dt = dt, x0=x0, plotting=True):
     parameters = {"x1_force": x1_force, "x3_force":x3_force, "periodic_force_amplitude":periodic_force_amplitude, "random_variance":random_variance, "steps":steps, "periods":periods,
@@ -83,12 +85,12 @@ def stochastic(x1_force=x1_force, x3_force=x3_force, periodic_force_amplitude=pe
             return potential_plot, potential_dot, time_dot
 
         def animate(i):
-            potential_plot.set_ydata(potentials[:,i])
-            potential_dot.set_data(x_history[i], particle_potentials[i])
-            time_dot.set_data(t[i], x_history[i])
+            potential_plot.set_ydata(potentials[:,i*show_every])
+            potential_dot.set_data(x_history[i*show_every], particle_potentials[i*show_every])
+            time_dot.set_data(t[i*show_every], x_history[i*show_every])
             return potential_plot, potential_dot, time_dot
 
-        animation = anim.FuncAnimation(fig, animate, frames=range(NT),
+        animation = anim.FuncAnimation(fig, animate, frames=range(int(NT/show_every)),
             init_func=animation_init, interval=1, blit=True,
             repeat=True, repeat_delay = 100,
             )
@@ -96,8 +98,6 @@ def stochastic(x1_force=x1_force, x3_force=x3_force, periodic_force_amplitude=pe
     parameters["xfin"] = x_history[-1]
     parameters["tfin"] = t[-1]
     return x_binary, parameters
-
-
 
 def run_stochastic(random_variance=random_variance, plotting=False):
     name = str(random_variance)
@@ -116,6 +116,7 @@ def run_stochastic(random_variance=random_variance, plotting=False):
 
 
 if __name__=="__main__":
-    for d in np.logspace(-2,1,200):
-        print("Running for d={}".format(d))
+    D = np.logspace(-2,1,200)
+    for i, d in enumerate(D):
+        print("Running run {}/{} at d={}".format(i, len(D), d))
         run_stochastic(random_variance=d)
