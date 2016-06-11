@@ -67,8 +67,12 @@ def fourier_analysis(filename = filename):
                 plt.savefig(picname)
                 plt.clf()
     fig, ax = plt.subplots()
-    import ipdb; ipdb.set_trace()
-    ax.plot(np.array([float(i) for i in data.keys()]), np.array([float(i) for i in data.values()]))
+    x_plot = np.array([float(i) for i in data.keys()])
+    y_plot = np.array([float(i) for i in data.values()])
+    sort_ind = np.argsort(x_plot)
+    x_plot = x_plot[sort_ind]
+    y_plot = y_plot[sort_ind]
+    ax.plot(x_plot, y_plot)
     plt.show()
 if __name__=="__main__":
     fourier_analysis()
