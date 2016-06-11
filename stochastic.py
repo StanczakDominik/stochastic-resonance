@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as anim
 from numba import autojit
 import h5py
-import time
 
 
 
@@ -24,6 +23,8 @@ T = steps * dt
 w = 1/T
 NT = periods * steps
 x0 = 2
+
+show_every = 20
 
 def stochastic(a=a, b=b, c=c, D=D, w=w, NT=NT, dt = dt, x0=x0, plotting=True):
     parameters = {"a": a, "b":b, "c":c, "D":D, "steps":steps, "periods":periods,
@@ -86,12 +87,12 @@ def stochastic(a=a, b=b, c=c, D=D, w=w, NT=NT, dt = dt, x0=x0, plotting=True):
             return potential_plot, potential_dot, time_dot
 
         def animate(i):
-            potential_plot.set_ydata(potentials[:,i])
-            potential_dot.set_data(x_history[i], particle_potentials[i])
-            time_dot.set_data(t[i], x_history[i])
+            potential_plot.set_ydata(potentials[:,i*show_every])
+            potential_dot.set_data(x_history[i*show_every], particle_potentials[i*show_every])
+            time_dot.set_data(t[i*show_every], x_history[i*show_every])
             return potential_plot, potential_dot, time_dot
 
-        animation = anim.FuncAnimation(fig, animate, frames=range(NT),
+        animation = anim.FuncAnimation(fig, animate, frames=range(int(NT/show_every)),
             init_func=animation_init, interval=1, blit=True,
             repeat=True, repeat_delay = 100,
             )
@@ -102,8 +103,6 @@ def stochastic(a=a, b=b, c=c, D=D, w=w, NT=NT, dt = dt, x0=x0, plotting=True):
 
 def fourier_analysis():
     from scipy.signal import savgol_filter
-    D_points = []
-    P_points = []
     with h5py.File("data.hdf5") as f:
         for dataset_name, dataset in f.items():
             attrs = dataset.attrs
@@ -115,7 +114,6 @@ def fourier_analysis():
             Omega = fft.rfftfreq(NT, dt)
             dOmega = Omega[1] - Omega[0]
             signal_power_density = np.abs(X)**2 / dOmega
-            max_power_ind = signal_power_density.argmax()
             noise = savgol_filter(signal_power_density, 201, 3)
             # ind = (Omega > 0)# * (Omega < Omega[max_power_ind]*3)
             # plt.plot(Omega, 20*np.log10(signal_power_density), label="{:3f}".format(D))
