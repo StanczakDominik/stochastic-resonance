@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 import h5py
 import numpy as np
 import scipy.fftpack as fft
+import os
 
-
-filename = "data2.hdf5"
+filename = "data3.hdf5"
 
 def fourier_analysis(filename = filename):
     data = {}
@@ -52,16 +52,24 @@ def fourier_analysis(filename = filename):
             averaged_fourier = np.log(averaged_signal)
             # import ipdb; ipdb.set_trace()
             ax2.plot(omega_average[indices], averaged_fourier[indices], "r--", label="avg noise")
-            y_plot3 = SPD[int(N_average/2):-int(N_average/2)][indices] - averaged_fourier[indices]            
+            y_plot3 = SPD[int(N_average/2):-int(N_average/2)][indices] - averaged_fourier[indices]
             ax3.plot(omega_average[indices], y_plot3,
                         "r-", label="avg noise")
             ax3.vlines(frequency, y_plot3.min(), y_plot3.max())
             ax2.legend(loc = 'best')
 
+            id_freq = np.argmin(np.abs(omega_average[indices] - frequency))
+            data[random_variance] = y_plot3[id_freq]
+
             ax2.set_ylabel("ln(|x|^2)")
             ax2.set_xlabel("f (Hz)")
             ax2.grid()
-            plt.savefig("{}.png".format(random_variance))
+            picname = "{}.png".format(random_variance)
+            if not os.path.isfile(picname):
+                plt.savefig(picname)
             plt.clf()
+    fig, ax = plt.subplots()
+    ax.plot(np.asarray(data.keys()), np.asarray(data.values()))
+    plt.show()
 if __name__=="__main__":
     fourier_analysis()
