@@ -9,17 +9,19 @@ filename = "data3.hdf5"
 def fourier_analysis(filename = filename):
     data = {}
     with h5py.File(filename) as f:
-        for dataset_name, dataset in f.items():
-            print(dataset_name)
+        for index, (dataset_name, dataset) in enumerate(f.items()):
+            print("Run {}/{} for d = {}".format(index, len(f.items()), dataset_name))
             attrs = dataset.attrs
             random_variance = float(attrs['random_variance'])
+            picname = "{}.png".format(random_variance)
+
             NT = int(attrs['NT'])
             dt = attrs['dt']
             T = attrs['T']
             frequency = attrs['force_frequency']
             x = dataset[...] * 2 -1
-            if (x == 1).all() or ( x == -1).all():
-                continue
+            #if (x == 1).all() or ( x == -1).all():
+            #    continue
             X = fft.rfft(x)
             Omega = fft.rfftfreq(NT, dt)
             # dOmega = Omega[1] - Omega[0]
@@ -40,7 +42,6 @@ def fourier_analysis(filename = filename):
             data[random_variance] = y_plot3[id_freq]
 
 
-            picname = "{}.png".format(random_variance)
             if not os.path.isfile(picname):
                 fig, (ax1, ax2, ax3) = plt.subplots(3)
                 ax1.plot(np.linspace(0,T,NT), x)
