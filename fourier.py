@@ -13,7 +13,7 @@ def fourier_analysis(filename = filename):
             print("Run {}/{} for d = {}".format(index, len(f.items()), dataset_name))
             attrs = dataset.attrs
             random_variance = float(attrs['random_variance'])
-            picname = "{}.png".format(random_variance)
+            picname = "plots/{}.png".format(random_variance)
 
             NT = int(attrs['NT'])
             dt = attrs['dt']
@@ -68,14 +68,11 @@ def fourier_analysis(filename = filename):
                 fig.savefig(picname)
                 fig.clf()
                 plt.close(fig)
-    fig, ax = plt.subplots()
     x_plot = np.array([float(i) for i in data.keys()])
     y_plot = np.array([float(i) for i in data.values()])
     sort_ind = np.argsort(x_plot)
     x_plot = x_plot[sort_ind]
     y_plot = y_plot[sort_ind]
     pd.Series(data = y_plot, index = x_plot, name="f[omega_driving](variance)").to_csv("wykres.csv")
-    ax.plot(x_plot, y_plot)
-    plt.show()
 if __name__=="__main__":
     fourier_analysis()
