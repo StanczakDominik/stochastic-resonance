@@ -48,7 +48,7 @@ def fourier_analysis(filename = filename):
                 ax1.set_ylim(-1.3, 1.3)
                 ax1.set_xlabel("t")
                 ax1.set_ylabel("x")
-                ax1.set_title("Noise variance: {}".format(random_variance))
+                ax1.set_title("Noise variance: {:.3f}".format(random_variance))
 
                 min_line = SPD.min()
                 if np.isinf(min_line):

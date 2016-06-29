@@ -6,12 +6,12 @@ dodanie do niego składowej stochastycznej. W ćwiczeniu zrealizowaliśmy ten ef
  poprzez symulację ruchu układu w potencjale bistabilnym z dodaną składową
  czasową, sinusoidalną.
 ## Symulacja ruchu
-Bardzo masywna cząstka porusza się w potencjale:
+Bardzo masywna cząstka porusza się w potencjale oscylatora Duffinga z okresową siłą wymuszającą
 $$ V(x) = a x^4 - b x^2 - c x\sin(\omega t) $$
-Z dodatkiem losowej siły wymuszającej o gaussowskim rozkładzie i wariancji $D$.
+Z dodatkiem losowej siły o gaussowskim rozkładzie i wariancji $D$.
 
-Ruch cząstki symulujemy przy użyciu zmodyfikowanego schematu Eulerowskiego ([PRACA, ROK])
-przy założeniu, że cząstka jest bardzo masywna [JAK SZŁO TO ZAŁOŻENIE?]
+Ruch cząstki symulujemy przy użyciu zmodyfikowanego schematu Eulerowskiego dla równań stochastycznych
+przy założeniu, że cząstka jest bardzo masywna i przetłumiona.
 co ostatecznie pozwala nam zapisać schemat aktualizacji pozycji cząstki
 między kolejnymi aktualizacjami jako:
 
@@ -48,6 +48,7 @@ Transformaty wygładziliśmy, uśredniając 51 najbliższych punktów z kwadratu
 
 ## Zebranie danych z 200 symulacji
 Wartości składowej odpowiadającej sile wymuszającej zebrane są, w skali log-log, na poniższym wykresie.
+
 ![Wykres zbierający dane](ostateczny_wykres.png)
 
 ## Wnioski
